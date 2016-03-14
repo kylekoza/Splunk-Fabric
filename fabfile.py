@@ -60,7 +60,9 @@ def deploy_master():
         current_pass = passwords[env.host]
 
     remote_dir = "/opt/splunk/etc/master-apps/"
-    with settings(sudo_user="splunk"):
+    with settings(sudo_user="splunk",
+            prompts={'Splunk username: ': 'admin',
+                     'Password: ': current_pass}):
         with cd(remote_dir):
             sudo("git pull")
 
@@ -76,7 +78,8 @@ def deploy_apps():
 
     remote_dir = "/opt/splunk/etc/deployment-apps/"
     with settings(sudo_user="splunk",
-            prompts={'Splunk username: ': 'admin'}):
+            prompts={'Splunk username: ': 'admin',
+                     'Password: ': current_pass}):
         with cd(remote_dir):
             sudo("git pull")
         sudo("~/bin/splunk reload deploy-server")
