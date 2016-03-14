@@ -1,0 +1,10 @@
+hosts = {
+    'indexers': [],
+    'master': [],
+    'search_heads': [],
+    'deployment_server': [],
+    'deployer': [],
+    'heavy_forwarders': [],
+}
+
+username = 

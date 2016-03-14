@@ -3,37 +3,37 @@ from fabric.api import *
 from fabric.operations import *
 from fabric.context_managers import *
 import getpass
+import config
 
 env.roledefs.update({
-    'indexers': ['spl-index01.is.gatech.edu',
-                 'spl-index02.is.gatech.edu',
-                 'spl-index03.is.gatech.edu'],
-    'master': ['spl-master.is.gatech.edu'],
-    'search_heads': ['spl-search01.is.gatech.edu',
-                     'spl-search02.is.gatech.edu',
-                     'spl-search03.is.gatech.edu',
-                     'spl-search04.is.gatech.edu',
-                     'spl-search05.is.gatech.edu',
-                     'spl-search06.is.gatech.edu',
-                     'spl-search07.is.gatech.edu',],
-    'deployment_server': ['spl-dep01.is.gatech.edu'],
-    'deployer': ['spl-searchmaster.is.gatech.edu'],
-    'heavy_forwarders': ['spl-hfwd01.is.gatech.edu',
-                         'spl-hfwd02.is.gatech.edu',
-                         'spl-hfwd03.is.gatech.edu',
-                         'spl-hfwd04.is.gatech.edu',
-                         'spl-hfwd05.is.gatech.edu',],
+    'indexers': config.hosts['indexers'],
+    'master': config.hosts['master'],
+    'search_heads': config.hosts['search_heads'],
+    'deployment_server': config.hosts['deployment_server'],
+    'deployer': config.hosts['deployer'],
+    'heavy_forwarders': config.hosts['heavy_forwarders'],
 })
 
 env.use_ssh_config = True
+env.user = config.username
+env.password = getpass.getpass('Please enter your remote sudo password: ')
+
+passwords = {}
 
 @task
 @roles('deployer')
 def deploy_searchapps():
+    if passwords.has_key(env.host):
+        current_pass = passwords[env.host]
+    else:
+        passwords[env.host] = getpass.getpass("Password for splunk@{0}: ".format(env.host))
+        current_pass = passwords[env.host]
+
     remote_dir = "/opt/splunk/etc/shcluster/apps"
     with settings(sudo_user="splunk", 
             prompts={'Do you wish to continue? [y/n]: ': 'y',
-                     'Splunk username: ': 'admin'}):
+                     'Splunk username: ': 'admin',
+                     'Password: ': current_pass}):
         sudo("ln -s ~/etc/shcluster/apps.git ~/etc/shcluster/apps/.git")
         with cd(remote_dir):
             sudo("git pull")
@@ -44,6 +44,12 @@ def deploy_searchapps():
 @task
 @roles('master')
 def deploy_master():
+    if passwords.has_key(env.host):
+        current_pass = passwords[env.host]
+    else:
+        passwords[env.host] = getpass.getpass("Password for splunk@{0}: ".format(env.host))
+        current_pass = passwords[env.host]
+
     remote_dir = "/opt/splunk/etc/master-apps/"
     with settings(sudo_user="splunk"):
         with cd(remote_dir):
@@ -53,9 +59,20 @@ def deploy_master():
 @task
 @roles('deployment_server')
 def deploy_apps():
+    if passwords.has_key(env.host):
+        current_pass = passwords[env.host]
+    else:
+        passwords[env.host] = getpass.getpass("Password for splunk@{0}: ".format(env.host))
+        current_pass = passwords[env.host]
+
     remote_dir = "/opt/splunk/etc/deployment-apps/"
     with settings(sudo_user="splunk",
             prompts={'Splunk username: ': 'admin'}):
         with cd(remote_dir):
             sudo("git pull")
         sudo("~/bin/splunk reload deploy-server")
+
+@task
+@roles('indexers')
+def test():
+    print env.host
