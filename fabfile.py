@@ -20,6 +20,15 @@ env.password = getpass.getpass('Please enter your remote sudo password: ')
 
 passwords = {}
 
+splunk_signing_key = "https://docs.splunk.com/images/6/6b/SplunkPGPKey.pub"
+
+@task
+@roles(['heavy_forwarders', 'master', 'search_heads', 'deployment_server', 'deployer'])
+def deploy_splunk_pubkey():
+    with cd("/tmp/"):
+        run("wget {0}".format(splunk_signing_key))
+        sudo("rpm --import SplunkPGPKey.pub")
+
 @task
 @roles('deployer')
 def deploy_searchapps():
