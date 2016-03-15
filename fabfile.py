@@ -174,7 +174,7 @@ def deploy_searchapps():
         with cd(remote_dir):
             sudo("git pull")
             sudo("rm .git")
-        sudo("~/bin/splunk apply shcluster-bundle -target https://spl-search05.is.gatech.edu:8089")
+        sudo("~/bin/splunk apply shcluster-bundle -target https://{0}:8089".format(config.hosts['search_heads'][0]))
 
 
 @task
