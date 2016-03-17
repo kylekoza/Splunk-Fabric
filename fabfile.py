@@ -150,7 +150,7 @@ def upgrade_test_cluster():
 
 @task
 def upgrade_all():
-    executre(get_passwords)
+    execute(get_passwords)
     execute(upgrade_index_cluster)
     execute(upgrade_searchheads)
     execute(upgrade_heavy_forwarders)
